@@ -1,0 +1,8 @@
+npm installing step by step
+1.typescript ts-node @types/node nodemon --save-dev
+2.npx tsc --init
+3.npm i jest ts-jest supertest jest-environment-node @types/jest @types/supertest --save-dev (testing third party packages,libraries)
+4.npm i express@next dotenv cors helmet morgan jest-config
+5.npm i @types/express @types/cors @types/morgan --save-dev
+6.npm i bcrypt compression express-rate-limit express-validator jsonwebtoken multer
+7.npm i @types/bcrypt @types/compression @types/jsonwebtoken @types/multer --save-dev
