@@ -16,7 +16,7 @@ CREATE TABLE "User" (
     "status" "Status" NOT NULL DEFAULT 'ACTIVE',
     "lastLogin" TIMESTAMP(3),
     "errorLoginCount" SMALLINT NOT NULL DEFAULT 0,
-    "randomToken" TEXT NOT NULL,
+    "refreshToken" TEXT NOT NULL,
     "image" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE "User" (
 CREATE TABLE "Otp" (
     "id" SERIAL NOT NULL,
     "phone" VARCHAR(15) NOT NULL,
-    "otp" VARCHAR(6) NOT NULL,
+    "otp" TEXT NOT NULL,
     "rememberToken" TEXT NOT NULL,
     "verifyToken" TEXT,
     "count" SMALLINT NOT NULL DEFAULT 0,
@@ -140,7 +140,13 @@ CREATE TABLE "ProductsOnOrders" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_phone_key" ON "User"("phone");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Otp_phone_key" ON "Otp"("phone");
 
 -- AddForeignKey
 ALTER TABLE "Post" ADD CONSTRAINT "Post_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

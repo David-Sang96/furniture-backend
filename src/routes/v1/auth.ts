@@ -2,7 +2,7 @@ import express from 'express';
 import { body } from 'express-validator';
 
 import {
-  confirmPassword,
+  confirmUserRegistration,
   login,
   register,
   verifyOtp,
@@ -39,7 +39,41 @@ router.post(
   ],
   verifyOtp
 );
-router.post('/confirm-password', confirmPassword);
-router.post('/login', login);
+router.post(
+  '/confirm-password',
+  [
+    body('phone', 'Invalid phone number')
+      .trim()
+      .notEmpty()
+      .matches('^[0-9]+$')
+      .isLength({ min: 5, max: 12 }),
+    body('password', 'Password must be at least 8 digits')
+      .trim()
+      .notEmpty()
+      .matches(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+$/)
+      .withMessage('Password must be letters and numbers')
+      .isLength({ min: 8 }),
+    body('token', 'Invalid token').trim().notEmpty().escape(),
+  ],
+  confirmUserRegistration
+);
+
+router.post(
+  '/login',
+  [
+    body('phone', 'Invalid phone number')
+      .trim()
+      .notEmpty()
+      .matches(/^[0-9]+$/)
+      .isLength({ min: 5, max: 12 }),
+    body('password', 'Password must be at least 8 digits')
+      .trim()
+      .notEmpty()
+      .matches(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+$/)
+      .withMessage('Password must be letters and numbers')
+      .isLength({ min: 8 }),
+  ],
+  login
+);
 
 export default router;

@@ -8,7 +8,7 @@ function createRandomUser() {
   return {
     password: '',
     phone: faker.phone.number({ style: 'international' }),
-    randomToken: faker.internet.jwt(),
+    refreshToken: faker.internet.jwt(),
   };
 }
 
