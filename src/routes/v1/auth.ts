@@ -4,6 +4,7 @@ import { body } from 'express-validator';
 import {
   confirmUserRegistration,
   login,
+  logOut,
   register,
   verifyOtp,
 } from '../../controllers/authController';
@@ -75,5 +76,7 @@ router.post(
   ],
   login
 );
+
+router.post('/logout', logOut);
 
 export default router;

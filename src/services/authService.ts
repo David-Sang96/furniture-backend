@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../utils/prisma';
 
 export const getUserByPhoneNumber = (phone: string) => {
   return prisma.user.findUnique({ where: { phone } });
@@ -24,4 +22,8 @@ export const createUser = (userData: any) => {
 
 export const updateUser = (id: number, userData: any) => {
   return prisma.user.update({ where: { id }, data: userData });
+};
+
+export const getUserById = (id: number) => {
+  return prisma.user.findUnique({ where: { id } });
 };

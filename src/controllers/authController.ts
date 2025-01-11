@@ -1,13 +1,14 @@
 import bcrypt from 'bcrypt';
 import { NextFunction, Request, Response } from 'express';
 import { validationResult } from 'express-validator';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import moment from 'moment';
 
 import {
   createOtp,
   createUser,
   getOtpByPhoneNumber,
+  getUserById,
   getUserByPhoneNumber,
   updateOtp,
   updateUser,
@@ -21,6 +22,11 @@ import {
 } from '../utils/auth';
 import { handleError } from '../utils/errorHandler';
 import { generateToken } from '../utils/generate';
+
+interface CustomJWtPayload extends JwtPayload {
+  userId: number;
+  phone: string;
+}
 
 export const register = async (
   req: Request,
@@ -306,7 +312,7 @@ export const login = async (
 
   const refreshToken = jwt.sign(
     refreshTokenPayload,
-    process.env.ACCESS_TOKEN_SECRET_KEY!,
+    process.env.REFRESH_TOKEN_SECRET_KEY!,
     { expiresIn: '30d' }
   );
 
@@ -326,4 +332,59 @@ export const login = async (
       secure: process.env.NODE_ENV === 'production',
     })
     .json({ message: 'Logged in successfully', userId: user!.id });
+};
+
+export const logOut = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const refreshToken = req.cookies ? req.cookies.refreshToken : null;
+
+  if (!refreshToken) {
+    return next(
+      handleError(
+        'Authentication failed. Refresh token is missing or invalid. Please log in again.',
+        401,
+        'Error_Unauthenticated'
+      )
+    );
+  }
+
+  // verify refresh token
+  let decoded: CustomJWtPayload;
+  try {
+    decoded = jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET_KEY!
+    ) as CustomJWtPayload;
+  } catch (error: any) {
+    return next(
+      handleError(
+        'Authentication failed. Refresh token is missing or invalid. Please log in again.',
+        401,
+        'Error_Unauthenticated'
+      )
+    );
+  }
+
+  const user = await getUserById(decoded.userId);
+  checkUserNotExist(user);
+
+  if (user?.phone !== decoded.phone) {
+    return next(
+      handleError(
+        'Authentication failed. Refresh token is missing or invalid. Please log in again.',
+        401,
+        'Error_Unauthenticated'
+      )
+    );
+  }
+
+  // replace with randomToken to prevent hacker requesting access token with stolen refresh token, even after user logged out
+  await updateUser(user.id, { refreshToken: generateToken() });
+
+  res.clearCookie('accessToken');
+  res.clearCookie('refreshToken');
+  res.json({ message: 'Logged out successfully.See you soon.' });
 };

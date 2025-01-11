@@ -1,8 +1,6 @@
 import { faker } from '@faker-js/faker';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
-
-const prisma = new PrismaClient();
+import { prisma } from '../src/utils/prisma';
 
 function createRandomUser() {
   return {
