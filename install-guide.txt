@@ -8,3 +8,5 @@ npm installing step by step
 7.npm i @types/bcrypt @types/compression @types/jsonwebtoken @types/multer --save-dev
 
 npx prisma db seed
+
+npm i i18next i18next-http-middleware i18next-fs-backend (Internationalization)

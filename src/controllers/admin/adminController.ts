@@ -5,5 +5,7 @@ export const getAllUsers = (
   res: Response,
   next: NextFunction
 ) => {
-  res.json({ message: 'All users', userId: req.userId });
+  const user = req.user;
+
+  res.json({ message: req.t('welcome'), currentUserRole: user?.role });
 };

@@ -1,3 +1,4 @@
+import { errorCode } from '../config/errorCode';
 import { handleError } from './errorHandler';
 
 export const checkUserExist = (user: any) => {
@@ -5,7 +6,7 @@ export const checkUserExist = (user: any) => {
     throw handleError(
       'This phone number has already been registered',
       409,
-      'Error_AlreadyExisted'
+      errorCode.userExist
     );
   }
 };
@@ -15,7 +16,7 @@ export const checkOtpLimitError = (isSameDate: boolean, errorCount: number) => {
     throw handleError(
       'Wrong OTP for 5 times.Please try again after 24 hours',
       401,
-      'Error_OverLimit'
+      errorCode.overLimit
     );
   }
 };
@@ -26,12 +27,12 @@ export const checkOtpRowExist = (otpRow: any) => {
   }
 };
 
-export const checkUserNotExist = (user: any) => {
+export const checkUserNotExist = (user: any, isOTP: boolean = true) => {
   if (!user) {
     throw handleError(
-      'This phone has not registered',
+      `This ${isOTP ? 'phone' : ' account'} has not registered`,
       401,
-      'Error_Unauthenticated'
+      errorCode.unauthenticated
     );
   }
 };
@@ -41,7 +42,7 @@ export const checkAccountStatus = (status: string) => {
     throw handleError(
       'Your account is temporarily locked.Please contact our support team.',
       401,
-      'Error_Freeze'
+      errorCode.accountFreeze
     );
   }
 };

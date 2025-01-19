@@ -4,6 +4,7 @@ import { validationResult } from 'express-validator';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import moment from 'moment';
 
+import { errorCode } from '../config/errorCode';
 import {
   createOtp,
   createUser,
@@ -86,7 +87,7 @@ export const register = async (
         handleError(
           'OTP is not allowed to request more than 3 times per day.',
           405,
-          'Error_OverLimit'
+          errorCode.overLimit
         )
       );
     } else {
@@ -140,7 +141,9 @@ export const verifyOtp = async (
   // check if OTP issue time is more than 2 minutes
   const isOTPExpired = moment().diff(otpRow!.updatedAt, 'minutes') > 2;
   if (isOTPExpired) {
-    return next(handleError('OTP is already expired', 403, 'Error_Expired'));
+    return next(
+      handleError('OTP is already expired', 403, errorCode.otpExpired)
+    );
   }
 
   // check if OTP is correct
@@ -151,7 +154,7 @@ export const verifyOtp = async (
       await updateOtp(otpRow!.id, { error: 1 });
     } else {
       await updateOtp(otpRow!.id, { error: { increment: 1 } });
-      return next(handleError('Invalid OTP', 401));
+      return next(handleError('OTP is incorrect', 401));
     }
   }
 
@@ -192,7 +195,7 @@ export const confirmUserRegistration = async (
   // check if OTP error count over limit
   if (otpRow?.error === 5) {
     return next(
-      handleError('This request maybe an attack.', 400, 'Error_BadRequest')
+      handleError('This request maybe an attack.', 400, errorCode.attack)
     );
   }
 
@@ -205,7 +208,7 @@ export const confirmUserRegistration = async (
   // check if request expiration
   const isExpired = moment().diff(otpRow?.updatedAt, 'minutes') > 10;
   if (isExpired) {
-    return next(handleError('Invalid token', 403, 'Error_Expired'));
+    return next(handleError('Invalid token', 403, errorCode.requestExpired));
   }
 
   // After verification passed
@@ -297,7 +300,7 @@ export const login = async (
         await updateUser(user!.id, { errorLoginCount: { increment: 1 } });
       }
     }
-    return next(handleError('Incorrect password', 401));
+    return next(handleError(req.t('wrongPassword'), 401));
   }
 
   // generate authorization tokens
@@ -307,7 +310,7 @@ export const login = async (
   const accessToken = jwt.sign(
     accessTokenPayload,
     process.env.ACCESS_TOKEN_SECRET_KEY!,
-    { expiresIn: 15 * 60 }
+    { expiresIn: '10m' }
   );
 
   const refreshToken = jwt.sign(
@@ -346,7 +349,7 @@ export const logOut = async (
       handleError(
         'Authentication failed. Refresh token is missing or invalid. Please log in again.',
         401,
-        'Error_Unauthenticated'
+        errorCode.unauthenticated
       )
     );
   }
@@ -363,7 +366,17 @@ export const logOut = async (
       handleError(
         'Authentication failed. Refresh token is missing or invalid. Please log in again.',
         401,
-        'Error_Unauthenticated'
+        errorCode.unauthenticated
+      )
+    );
+  }
+
+  if (isNaN(decoded.userId)) {
+    return next(
+      handleError(
+        'Authentication failed.Please log in again.',
+        401,
+        errorCode.unauthenticated
       )
     );
   }
@@ -376,7 +389,7 @@ export const logOut = async (
       handleError(
         'Authentication failed. Refresh token is missing or invalid. Please log in again.',
         401,
-        'Error_Unauthenticated'
+        errorCode.unauthenticated
       )
     );
   }
@@ -384,7 +397,16 @@ export const logOut = async (
   // replace with randomToken to prevent hacker requesting access token with stolen refresh token, even after user logged out
   await updateUser(user.id, { refreshToken: generateToken() });
 
-  res.clearCookie('accessToken');
-  res.clearCookie('refreshToken');
+  res.clearCookie('accessToken', {
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+    secure: process.env.NODE_ENV === 'production',
+  });
+
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+    secure: process.env.NODE_ENV === 'production',
+  });
   res.json({ message: 'Logged out successfully.See you soon.' });
 };
