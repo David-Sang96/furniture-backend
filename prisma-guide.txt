@@ -1,0 +1,125 @@
+Here’s a simple structure for a **type-safe CRUD service** using Prisma:
+
+---
+
+### **1. Define a `UserService`**
+This service will include all CRUD operations, and it will use Prisma's generated types for type safety.
+
+```ts
+import { Prisma, PrismaClient, User } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export const UserService = {
+  /**
+   * Create a new user
+   * @param data - Data for creating a user
+   * @returns Created user
+   */
+  create: async (data: Prisma.UserCreateInput): Promise<User> => {
+    return prisma.user.create({ data });
+  },
+
+  /**
+   * Get a user by unique identifier
+   * @param where - Criteria for finding a user (e.g., id or email)
+   * @returns Found user or null
+   */
+  findUnique: async (
+    where: Prisma.UserWhereUniqueInput
+  ): Promise<User | null> => {
+    return prisma.user.findUnique({ where });
+  },
+
+  /**
+   * Get multiple users with optional filters, pagination, and sorting
+   * @param params - Options for filtering, pagination, and sorting
+   * @returns List of users
+   */
+  findMany: async (
+    params: Prisma.UserFindManyArgs = {}
+  ): Promise<User[]> => {
+    return prisma.user.findMany(params);
+  },
+
+  /**
+   * Update a user by unique identifier
+   * @param where - Criteria for identifying the user to update
+   * @param data - Data for updating the user
+   * @returns Updated user
+   */
+  update: async (
+    where: Prisma.UserWhereUniqueInput,
+    data: Prisma.UserUpdateInput
+  ): Promise<User> => {
+    return prisma.user.update({ where, data });
+  },
+
+  /**
+   * Delete a user by unique identifier
+   * @param where - Criteria for identifying the user to delete
+   * @returns Deleted user
+   */
+  delete: async (where: Prisma.UserWhereUniqueInput): Promise<User> => {
+    return prisma.user.delete({ where });
+  },
+};
+```
+
+---
+
+### **2. Example Usage**
+Here’s how you would use the `UserService` in your application:
+
+#### **Create a user**
+```ts
+const newUser = await UserService.create({
+  email: 'test@example.com',
+  name: 'Test User',
+  password: 'hashed-password',
+});
+console.log('Created User:', newUser);
+```
+
+#### **Find a user by ID**
+```ts
+const user = await UserService.findUnique({ id: 1 });
+if (!user) {
+  console.log('User not found');
+} else {
+  console.log('Found User:', user);
+}
+```
+
+#### **Update a user**
+```ts
+const updatedUser = await UserService.update(
+  { id: 1 },
+  { name: 'Updated Name' }
+);
+console.log('Updated User:', updatedUser);
+```
+
+#### **Delete a user**
+```ts
+await UserService.delete({ id: 1 });
+console.log('User deleted');
+```
+
+#### **Get multiple users**
+```ts
+const users = await UserService.findMany({
+  where: { isActive: true },
+  orderBy: { createdAt: 'desc' },
+});
+console.log('Active Users:', users);
+```
+
+---
+
+### **3. Benefits of this Approach**
+- **Reusability:** All user-related logic is centralized in one service.
+- **Type Safety:** Prisma's types ensure you pass the correct data for each operation.
+- **Clean Code:** Your controllers or resolvers remain simple, focusing only on business logic.
+
+Let me know if you want to extend this further with error handling or validation!

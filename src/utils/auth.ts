@@ -12,7 +12,7 @@ export const checkUserExist = (user: any) => {
 };
 
 export const checkOtpLimitError = (isSameDate: boolean, errorCount: number) => {
-  if (isSameDate && errorCount >= 5) {
+  if (isSameDate && errorCount === 5) {
     throw handleError(
       'Wrong OTP for 5 times.Please try again after 24 hours',
       401,

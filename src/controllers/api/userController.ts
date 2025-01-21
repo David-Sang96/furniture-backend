@@ -1,17 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
-import { validationResult } from 'express-validator';
-import { handleError } from '../../utils/errorHandler';
+import { handleValidationResult } from '../../utils/errorHandler';
 
 export const changeLanguages = (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const errorResult = validationResult(req).array({ onlyFirstError: true });
-  if (errorResult.length) {
-    return next(handleError(errorResult[0].msg));
-  }
-
+  handleValidationResult(req);
   const { lng } = req.query;
   const languageName = lng === 'mm' ? 'မြန်မာ' : 'English';
 
