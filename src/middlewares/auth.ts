@@ -49,16 +49,6 @@ export const isAuth = async (
     );
   }
 
-  if (!accessToken) {
-    return next(
-      handleError(
-        'Authentication failed. Access token is missing or invalid. Please log in again.',
-        401,
-        errorCode.unauthenticated
-      )
-    );
-  }
-
   const generateNewTokens = async () => {
     let decoded: CustomJWtPayload;
 
@@ -90,6 +80,16 @@ export const isAuth = async (
     const user = await getUserById(decoded.userId);
     checkUserNotExist(user, false);
 
+    if (user?.phone !== decoded.phone) {
+      return next(
+        handleError(
+          'Authentication failed.Please log in again.',
+          401,
+          errorCode.unauthenticated
+        )
+      );
+    }
+
     if (user?.refreshToken !== refreshToken) {
       return next(
         handleError(
@@ -107,8 +107,9 @@ export const isAuth = async (
     const newAccessToken = jwt.sign(
       accessTokenPayload,
       process.env.ACCESS_TOKEN_SECRET_KEY!,
-      { expiresIn: '10m' }
+      { expiresIn: '15m' }
     );
+
     const newRefreshToken = jwt.sign(
       refreshTokenPayload,
       process.env.REFRESH_TOKEN_SECRET_KEY!,
@@ -135,6 +136,10 @@ export const isAuth = async (
     next();
   };
 
+  if (!accessToken) {
+    return await generateNewTokens(); // Stop further execution as new tokens are already generated
+  }
+
   // verify access token
   let decoded: CustomJWtPayload;
   try {
@@ -156,9 +161,11 @@ export const isAuth = async (
     req.userId = decoded.userId;
     next();
   } catch (error: any) {
-    if (error.name === 'TokenExpiredError' && error.message === 'jwt expired') {
-      return await generateNewTokens();
-    }
-    return next(handleError('Access token is invalid', 400, errorCode.attack));
+    console.log(error);
+    if (error.name === 'TokenExpiredError') await generateNewTokens();
+    else
+      return next(
+        handleError('Access token is invalid', 400, errorCode.attack)
+      );
   }
 };

@@ -19,7 +19,7 @@ export const generateJwtTokens = (user: User) => {
   const accessToken = jwt.sign(
     accessTokenPayload,
     process.env.ACCESS_TOKEN_SECRET_KEY!,
-    { expiresIn: '10m' }
+    { expiresIn: '15m' }
   );
 
   const refreshToken = jwt.sign(

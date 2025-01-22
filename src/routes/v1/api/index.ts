@@ -1,5 +1,6 @@
 import express from 'express';
 import { query } from 'express-validator';
+
 import { changeLanguages } from '../../../controllers/api/userController';
 
 const router = express.Router();
