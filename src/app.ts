@@ -7,6 +7,7 @@ import i18next from 'i18next';
 import i18nextBackend from 'i18next-fs-backend';
 import i18nextMiddleware from 'i18next-http-middleware';
 import morgan from 'morgan';
+// import cron from 'node-cron';
 import path from 'path';
 
 import { rateLimiter } from './middlewares/rateLimiter';
@@ -43,6 +44,8 @@ app
   .use(compression())
   .use(rateLimiter);
 
+app.use(express.static('upload'));
+
 i18next
   .use(i18nextBackend)
   .use(i18nextMiddleware.LanguageDetector)
@@ -76,3 +79,12 @@ app.use((error: any, req: Request, res: Response, next: NextFunction) => {
   const errorCode = error.code || 'Error_Code';
   res.status(status).json({ message, error: errorCode });
 });
+
+// cron.schedule('* * * * *', async () => {
+//   console.log('running a task every one minute');
+//   const setting = await getSettingStatus('maintenance');
+//   if (setting?.value === 'true') {
+//     await createOrUpdateSetting('maintenance', 'false');
+//     console.log('Maintenance mode is off');
+//   }
+// });
