@@ -7,7 +7,7 @@ import {
   uploadProfile,
 } from '../../../controllers/api/profileController';
 import { isAuth } from '../../../middlewares/auth';
-import upload, { uploadMemory } from '../../../middlewares/uploadFile';
+import upload from '../../../middlewares/uploadFile';
 
 const router = express.Router();
 
@@ -18,7 +18,7 @@ router.patch('/profile/upload', isAuth, upload.single('avatar'), uploadProfile);
 router.patch(
   '/profile/upload/optimize',
   isAuth,
-  uploadMemory.single('avatar'),
+  upload.single('avatar'),
   uploadOptimizeProfile
 );
 

@@ -3,6 +3,7 @@ import { unlink } from 'node:fs/promises';
 import path from 'node:path';
 
 import { NextFunction, Request, Response } from 'express';
+import ImageQueue from '../../jobs/queues/imageQueue';
 import { getUserById, updateUser } from '../../services/authService';
 import { checkUserNotExist } from '../../utils/auth';
 import { isValidImage } from '../../utils/check';
@@ -82,8 +83,70 @@ export const uploadOptimizeProfile = async (
 ) => {
   const userId = req.userId;
   const image = req.file;
+  console.log(image);
 
   const user = await getUserById(userId!);
   checkUserNotExist(user, false);
   isValidImage(image);
+
+  // const fileName = Date.now() + '-' + `${Math.round(Math.random() * 1e9)}.webp`;
+  // try {
+  //   const optimizedImagePath = path.join(
+  //     __dirname,
+  //     '../../../',
+  //     'upload/images',
+  //     fileName
+  //   );
+  //   await sharp(req.file?.buffer)
+  //     .resize(200, 200)
+  //     .webp({ quality: 50 })
+  //     .toFile(optimizedImagePath);
+  // } catch (error) {
+  //   console.error(error);
+  //   res.status(500).json({ message: 'Image optimization failed' });
+  //   return;
+  // }
+
+  const splitFileName = image?.filename.split('.')[0];
+
+  const job = await ImageQueue.add(
+    'optimize-image',
+    {
+      filepath: image?.path,
+      fileName: `${splitFileName}.webp`,
+    },
+    // if first try failed then wait for 1 sec , if second try failed again then wait for 2 sec cos exponential is doubling up the time
+    { attempts: 3, backoff: { type: 'exponential', delay: 1000 } }
+  );
+
+  if (user?.image) {
+    try {
+      const originalFilePath = path.join(
+        __dirname,
+        '../../../',
+        'upload/images',
+        user.image
+      );
+
+      const optimizeFilePath = path.join(
+        __dirname,
+        '../../../',
+        'upload/optimize',
+        user.image.split('.')[0] + '.webp'
+      );
+
+      await unlink(originalFilePath);
+      await unlink(optimizeFilePath);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  await updateUser(user!.id, { image: image?.filename });
+
+  res.json({
+    message: 'Profile image uploaded successfully',
+    image: splitFileName + '.webp',
+    jobId: job.id,
+  });
 };

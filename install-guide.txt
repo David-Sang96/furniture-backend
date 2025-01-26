@@ -10,3 +10,5 @@ npm installing step by step
 npx prisma db seed
 
 npm i i18next i18next-http-middleware i18next-fs-backend (Internationalization)
+
+build queue --> add job to queue --> worker listen to queue to process the job
