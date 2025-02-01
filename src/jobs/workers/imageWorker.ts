@@ -5,7 +5,7 @@ import sharp from 'sharp';
 
 const connection = new Redis({
   host: process.env.REDIS_HOST,
-  port: 6379,
+  port: parseInt(process.env.REDIS_PORT!) || 6379,
   maxRetriesPerRequest: null,
 });
 
@@ -13,7 +13,7 @@ const connection = new Redis({
 const imageWorker = new Worker(
   'imageQueue',
   async (job) => {
-    const { filepath, fileName } = job.data;
+    const { filepath, fileName, width, height, quality } = job.data;
     const optimizedImagePath = path.join(
       __dirname,
       '../../../',
@@ -21,8 +21,8 @@ const imageWorker = new Worker(
       fileName
     );
     await sharp(filepath)
-      .resize(200, 200)
-      .webp({ quality: 50 })
+      .resize(width, height)
+      .webp({ quality })
       .toFile(optimizedImagePath);
   },
   { connection }

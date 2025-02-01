@@ -114,6 +114,9 @@ export const uploadOptimizeProfile = async (
     {
       filepath: image?.path,
       fileName: `${splitFileName}.webp`,
+      width: 200,
+      height: 200,
+      quality: 50,
     },
     // if first try failed then wait for 1 sec , if second try failed again then wait for 2 sec cos exponential is doubling up the time
     { attempts: 3, backoff: { type: 'exponential', delay: 1000 } }

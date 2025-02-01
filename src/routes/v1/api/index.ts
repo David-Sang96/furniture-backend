@@ -1,6 +1,10 @@
 import express from 'express';
 
 import {
+  getPost,
+  getPostsByPagination,
+} from '../../../controllers/api/postController';
+import {
   changeLanguages,
   uploadMultipleProfile,
   uploadOptimizeProfile,
@@ -28,5 +32,8 @@ router.patch(
   upload.array('avatar'),
   uploadMultipleProfile
 );
+
+router.get('/posts', isAuth, getPostsByPagination);
+router.get('/posts/:id', isAuth, getPost);
 
 export default router;
