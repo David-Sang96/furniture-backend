@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import moment from 'moment';
 
-import { User } from '@prisma/client';
+import { Otp, User } from '@prisma/client';
 import { errorCode } from '../config/errorCode';
 import {
   createUser,
@@ -47,11 +47,11 @@ export const handlePasswordConfirmation = async ({
   if (action === 'register') checkUserExist(user);
   if (action === 'reset-password') checkUserNotExist(user);
 
-  const existingOtp = await getOtpByPhoneNumber(phone);
+  const existingOtp = (await getOtpByPhoneNumber(phone)) as Otp;
   checkOtpRowExist(existingOtp);
 
   // check if OTP error count over limit
-  if (existingOtp?.error === 5) {
+  if (existingOtp?.error >= 5) {
     throw handleError('This request maybe an attack.', 400, errorCode.attack);
   }
 

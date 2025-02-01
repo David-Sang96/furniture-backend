@@ -6,12 +6,19 @@ import sanitize from 'sanitize-html';
 import { errorCode } from '../../config/errorCode';
 import ImageQueue from '../../jobs/queues/imageQueue';
 import { getUserById } from '../../services/authService';
-import { createOnePost } from '../../services/postservice';
-import { CreatePost } from '../../types/postTypes';
-import { isValidImage } from '../../utils/check';
+import {
+  createOnePost,
+  deleteOnePost,
+  getPostById,
+  updateOnePost,
+} from '../../services/postservice';
+import { PostDataTypes } from '../../types/postTypes';
+import { checkUserNotExist } from '../../utils/auth';
+import { checkModelExisted, isValidImage } from '../../utils/check';
 import {
   handleError,
   handlePostValidationResult,
+  handleValidationResult,
 } from '../../utils/errorHandler';
 import { removePostFiles } from '../../utils/removePostFiles';
 
@@ -45,7 +52,6 @@ export const createPost = [
   body('category', 'Category is required').notEmpty().trim().escape(),
   body('type', 'Type is required').notEmpty().trim().escape(),
   body('tags', 'Tags is invalid')
-    .trim()
     .optional({ nullable: true })
     .customSanitizer((value) => {
       if (value)
@@ -72,7 +78,7 @@ export const createPost = [
       );
     }
 
-    const splitFileName = image?.filename.split('.')[0];
+    const splitFileName = image!.filename.split('.')[0];
     await ImageQueue.add(
       'optimize-image',
       {
@@ -85,14 +91,14 @@ export const createPost = [
       { attempts: 3, backoff: { type: 'exponential', delay: 1000 } }
     );
 
-    const data: CreatePost = {
+    const data: PostDataTypes = {
       title,
       content,
       body,
       category,
       type,
       tags,
-      userId: user?.id!,
+      userId: user.id,
       image: image!.filename,
     };
 
@@ -104,33 +110,126 @@ export const createPost = [
 ];
 
 export const updatePost = [
-  body(''),
+  body('postId', 'Post id is required.')
+    .trim()
+    .notEmpty()
+    .isInt({ min: 1 })
+    .withMessage('Post ID must be a positive number'),
+  body('title', 'Title is required').notEmpty().trim().escape(),
+  body('content', 'Content is required').notEmpty().trim().escape(),
+  body('body', 'Content is required')
+    .notEmpty()
+    .trim()
+    .customSanitizer((val) => sanitize(val))
+    .notEmpty(),
+  body('category', 'Category is required').notEmpty().trim().escape(),
+  body('type', 'Type is required').notEmpty().trim().escape(),
+  body('tags', 'Tags is invalid')
+    .optional({ nullable: true })
+    .customSanitizer((value) => {
+      if (value)
+        return value.split(',').filter((tag: string) => tag.trim() !== '');
+      return value;
+    }),
   async (req: Request, res: Response, next: NextFunction) => {
-    res.json({ message: '' });
+    await handlePostValidationResult(req);
+
+    const { postId, title, content, body, category, type, tags } = req.body;
+    const userId = req.userId;
+    const image = req.file;
+
+    const user = await getUserById(userId!);
+    if (!user) {
+      if (image) {
+        await removePostFiles(image!.filename, null);
+      }
+      return next(
+        handleError(
+          `This account has not registered`,
+          401,
+          errorCode.unauthenticated
+        )
+      );
+    }
+
+    const isPostExisted = await getPostById(+postId);
+    if (!isPostExisted) {
+      if (image) {
+        await removePostFiles(image!.filename, null);
+      }
+      return next(handleError('No post found', 400));
+    }
+
+    if (user.id !== isPostExisted.userId) {
+      if (image) {
+        await removePostFiles(image!.filename, null);
+      }
+      return next(
+        handleError('This action is not allowed', 403, errorCode.unauthorize)
+      );
+    }
+
+    const data: any = {
+      title,
+      content,
+      body,
+      category,
+      type,
+      tags,
+    };
+
+    if (image) {
+      data.image = image.filename;
+      const splitFileName = image.filename.split('.')[0];
+
+      await ImageQueue.add(
+        'optimize-image',
+        {
+          filepath: image?.path,
+          fileName: `${splitFileName}.webp`,
+          width: 835,
+          height: 577,
+          quality: 100,
+        },
+        { attempts: 3, backoff: { type: 'exponential', delay: 1000 } }
+      );
+
+      const optimizedFile = isPostExisted.image.split('.')[0] + '.webp';
+      await removePostFiles(isPostExisted.image, optimizedFile);
+    }
+
+    const updatedPost = await updateOnePost(isPostExisted.id, data);
+    res.json({ message: 'Updated post successfully', postId: updatedPost.id });
   },
 ];
 
 export const deletePost = [
-  body(''),
+  body('postId', 'Post id is required')
+    .trim()
+    .notEmpty()
+    .isInt({ min: 1 })
+    .withMessage('Post ID must be a positive number'),
   async (req: Request, res: Response, next: NextFunction) => {
-    // if (user?.image) {
-    //   const originalFilePath = path.join(
-    //     __dirname,
-    //     '../../../',
-    //     'upload/images',
-    //     image?.filename!
-    //   );
+    handleValidationResult(req);
 
-    //   const optimizeFilePath = path.join(
-    //     __dirname,
-    //     '../../../',
-    //     'upload/optimize',
-    //     splitFileName + '.webp'
-    //   );
+    const postId = Number(req.body.postId);
+    const userId = req.userId;
 
-    //   await unlink(originalFilePath);
-    //   await unlink(optimizeFilePath);
-    // }
-    res.json({ message: '' });
+    const user = await getUserById(userId!);
+    checkUserNotExist(user, false);
+
+    const post = await getPostById(postId);
+    checkModelExisted(post);
+
+    const optimizedFile = post!.image.split('.')[0] + '.webp';
+    await removePostFiles(post!.image, optimizedFile);
+
+    if (user!.id !== post?.userId)
+      return next(
+        handleError('This action is not allowed', 403, errorCode.unauthorize)
+      );
+
+    const deletedPost = await deleteOnePost(postId);
+    res.json({ message: 'Post deleted successfully', postId: deletedPost.id });
   },
 ];

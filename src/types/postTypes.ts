@@ -1,4 +1,4 @@
-export type CreatePost = {
+export type PostDataTypes = {
   title: string;
   content: string;
   body: string;

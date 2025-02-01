@@ -1,7 +1,7 @@
-import { CreatePost } from '../types/postTypes';
+import { PostDataTypes } from '../types/postTypes';
 import { prisma } from '../utils/prisma';
 
-export const createOnePost = (postData: CreatePost) => {
+export const createOnePost = (postData: PostDataTypes) => {
   const data: any = {
     title: postData.title,
     content: postData.content,
@@ -38,4 +38,48 @@ export const createOnePost = (postData: CreatePost) => {
   return prisma.post.create({
     data,
   });
+};
+
+export const updateOnePost = (id: number, postData: PostDataTypes) => {
+  const data: any = {
+    title: postData.title,
+    content: postData.content,
+    body: postData.body,
+    // one to many relation
+    category: {
+      connectOrCreate: {
+        where: { name: postData.category },
+        create: { name: postData.category },
+      },
+    },
+    // one to many relation
+    type: {
+      connectOrCreate: {
+        where: { name: postData.type },
+        create: { name: postData.type },
+      },
+    },
+  };
+
+  if (postData.tags && postData.tags.length > 0) {
+    // many to many relation
+    data.tags = {
+      connectOrCreate: postData.tags.map((tagName) => ({
+        where: { name: tagName },
+        create: { name: tagName },
+      })),
+    };
+  }
+
+  if (postData.image) data.image = postData.image;
+
+  return prisma.post.update({ where: { id }, data });
+};
+
+export const deleteOnePost = (id: number) => {
+  return prisma.post.delete({ where: { id } });
+};
+
+export const getPostById = (id: number) => {
+  return prisma.post.findUnique({ where: { id } });
 };

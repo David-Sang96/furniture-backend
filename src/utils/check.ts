@@ -5,3 +5,9 @@ export const isValidImage = (file: any) => {
     throw handleError('Invalid Image', 422);
   }
 };
+
+export const checkModelExisted = (model: any) => {
+  if (!model) {
+    throw handleError('This model does not exist', 409);
+  }
+};

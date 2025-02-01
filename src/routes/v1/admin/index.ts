@@ -16,7 +16,7 @@ router.post('/maintenance', setMaintenance);
 
 // CRUD for Poss
 router.post('/posts', upload.single('image'), createPost);
-router.patch('/posts/:id', upload.single('image'), updatePost);
-router.delete('/posts/:id', deletePost);
+router.patch('/posts', upload.single('image'), updatePost);
+router.delete('/posts', deletePost);
 
 export default router;

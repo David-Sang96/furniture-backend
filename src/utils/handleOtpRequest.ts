@@ -72,7 +72,7 @@ export const handleOtpRequest = async ({
     }
 
     // check if user requesting OTP for more than 3 times in a day
-    if (existingOtp.count === 3) {
+    if (existingOtp.count >= 3) {
       return next(
         handleError(
           'OTP is not allowed to request more than 3 times per day.',

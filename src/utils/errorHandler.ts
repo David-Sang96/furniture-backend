@@ -23,11 +23,9 @@ export const handleValidationResult = (req: Request) => {
 };
 
 export const handlePostValidationResult = async (req: Request) => {
-  if (req.file) {
-    await removePostFiles(req.file.filename, null);
-  }
   const errorResult = validationResult(req).array({ onlyFirstError: true });
   if (errorResult.length) {
+    if (req.file) await removePostFiles(req.file.filename, null);
     throw handleError(errorResult[0].msg);
   }
 };
