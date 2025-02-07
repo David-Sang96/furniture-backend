@@ -1,8 +1,9 @@
 import express from 'express';
 
 import {
-  getPost,
+  getInfinitePostsByPagination,
   getPostsByPagination,
+  getSinglePost,
 } from '../../../controllers/api/postController';
 import {
   changeLanguages,
@@ -33,7 +34,10 @@ router.patch(
   uploadMultipleProfile
 );
 
+// offset pagination
 router.get('/posts', isAuth, getPostsByPagination);
-router.get('/posts/:id', isAuth, getPost);
+// cursor-based pagination
+router.get('/posts/infinite', isAuth, getInfinitePostsByPagination);
+router.get('/posts/:id', isAuth, getSinglePost);
 
 export default router;

@@ -1,5 +1,5 @@
 import { PostDataTypes } from '../types/postTypes';
-import { prisma } from '../utils/prisma';
+import { prisma } from './prismaClient';
 
 export const createOnePost = (postData: PostDataTypes) => {
   const data: any = {
@@ -29,8 +29,8 @@ export const createOnePost = (postData: PostDataTypes) => {
     // many to many relation
     data.tags = {
       connectOrCreate: postData.tags.map((tagName) => ({
-        where: { name: tagName },
-        create: { name: tagName },
+        where: { name: tagName.trim() },
+        create: { name: tagName.trim() },
       })),
     };
   }
@@ -82,4 +82,28 @@ export const deleteOnePost = (id: number) => {
 
 export const getPostById = (id: number) => {
   return prisma.post.findUnique({ where: { id } });
+};
+
+export const getSinglePostWithRelations = (id: number) => {
+  const postSelection = {
+    id: true,
+    title: true,
+    body: true,
+    content: true,
+    image: true,
+    updatedAt: true,
+    user: { select: { /*firstName: true, lastName: true, */ fullName: true } },
+    category: { select: { name: true } },
+    type: { select: { name: true } },
+    tags: { select: { name: true } },
+  };
+
+  return prisma.post.findUnique({
+    where: { id },
+    select: postSelection,
+  });
+};
+
+export const getAllPosts = (options: any) => {
+  return prisma.post.findMany(options);
 };

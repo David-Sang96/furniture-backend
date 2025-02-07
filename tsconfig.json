@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["ESNext"],
-    "module": "commonjs",
+    "module": "CommonJS",
     "moduleResolution": "nodenext",
     "sourceMap": true,
     "outDir": "dist",
@@ -14,3 +14,9 @@
   },
   "include": ["./*.js", "src/**/*.ts", "test/**/*.ts"]
 }
+
+// The reason you can use both import syntax and __dirname in your TypeScript setup is:
+
+// "module": "CommonJS" → TypeScript compiles your code as CommonJS, where __dirname is automatically available.
+// "esModuleInterop": true → Allows you to use import syntax even in a CommonJS setup.
+// So, you're technically using CommonJS with ES module-like imports, which is why both import and __dirname work together.

@@ -54,9 +54,15 @@ export const createPost = [
   body('tags', 'Tags is invalid')
     .optional({ nullable: true })
     .customSanitizer((value) => {
-      if (value)
-        return value.split(',').filter((tag: string) => tag.trim() !== '');
-      return value;
+      if (!value) return undefined;
+      if (typeof value === 'string') {
+        const tagsArray = value
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter((tag) => tag !== '');
+        return tagsArray.length > 0 ? tagsArray : undefined;
+      }
+      return undefined; // In case of unexpected data type
     }),
   async (req: Request, res: Response, next: NextFunction) => {
     await handlePostValidationResult(req);
@@ -204,10 +210,8 @@ export const updatePost = [
 ];
 
 export const deletePost = [
-  body('postId', 'Post id is required')
-    .trim()
-    .notEmpty()
-    .isInt({ min: 1 })
+  body('postId', 'Post ID is required')
+    .isInt({ gt: 0 })
     .withMessage('Post ID must be a positive number'),
   async (req: Request, res: Response, next: NextFunction) => {
     handleValidationResult(req);
@@ -221,13 +225,13 @@ export const deletePost = [
     const post = await getPostById(postId);
     checkModelExisted(post);
 
-    const optimizedFile = post!.image.split('.')[0] + '.webp';
-    await removePostFiles(post!.image, optimizedFile);
-
     if (user!.id !== post?.userId)
       return next(
         handleError('This action is not allowed', 403, errorCode.unauthorize)
       );
+
+    const optimizedFile = post!.image.split('.')[0] + '.webp';
+    await removePostFiles(post!.image, optimizedFile);
 
     const deletedPost = await deleteOnePost(postId);
     res.json({ message: 'Post deleted successfully', postId: deletedPost.id });
