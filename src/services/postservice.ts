@@ -1,5 +1,5 @@
 import { PostDataTypes } from '../types/postTypes';
-import { prisma } from './prismaClient';
+import { postPrisma } from './postPrismaClient';
 
 export const createOnePost = (postData: PostDataTypes) => {
   const data: any = {
@@ -35,7 +35,7 @@ export const createOnePost = (postData: PostDataTypes) => {
     };
   }
 
-  return prisma.post.create({
+  return postPrisma.post.create({
     data,
   });
 };
@@ -73,15 +73,15 @@ export const updateOnePost = (id: number, postData: PostDataTypes) => {
 
   if (postData.image) data.image = postData.image;
 
-  return prisma.post.update({ where: { id }, data });
+  return postPrisma.post.update({ where: { id }, data });
 };
 
 export const deleteOnePost = (id: number) => {
-  return prisma.post.delete({ where: { id } });
+  return postPrisma.post.delete({ where: { id } });
 };
 
 export const getPostById = (id: number) => {
-  return prisma.post.findUnique({ where: { id } });
+  return postPrisma.post.findUnique({ where: { id } });
 };
 
 export const getSinglePostWithRelations = (id: number) => {
@@ -98,12 +98,12 @@ export const getSinglePostWithRelations = (id: number) => {
     tags: { select: { name: true } },
   };
 
-  return prisma.post.findUnique({
+  return postPrisma.post.findUnique({
     where: { id },
     select: postSelection,
   });
 };
 
 export const getAllPosts = (options: any) => {
-  return prisma.post.findMany(options);
+  return postPrisma.post.findMany(options);
 };

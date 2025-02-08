@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-export const prisma = new PrismaClient().$extends({
+export const postPrisma = new PrismaClient().$extends({
   result: {
     user: {
       fullName: {

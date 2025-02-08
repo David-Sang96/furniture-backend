@@ -1,4 +1,4 @@
-import { prisma } from '../utils/prisma';
+import { prisma } from '../config/prisma';
 
 export const getSettingStatus = (key: string) => {
   return prisma.setting.findUnique({ where: { key } });

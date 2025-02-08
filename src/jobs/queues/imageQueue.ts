@@ -1,12 +1,6 @@
 import { Queue } from 'bullmq';
-import { Redis } from 'ioredis';
+import redisClient from '../../config/redisClient';
 
-const connection = new Redis({
-  host: process.env.REDIS_HOST,
-  port: parseInt(process.env.REDIS_PORT!) || 6379,
-  // password : process.env.REDIS_PASSWORD,
-});
-
-const ImageQueue = new Queue('imageQueue', { connection });
+const ImageQueue = new Queue('imageQueue', { connection: redisClient });
 
 export default ImageQueue;

@@ -4,6 +4,7 @@ import { body } from 'express-validator';
 
 import sanitize from 'sanitize-html';
 import { errorCode } from '../../config/errorCode';
+import CacheQueue from '../../jobs/queues/cacheQueue';
 import ImageQueue from '../../jobs/queues/imageQueue';
 import { getUserById } from '../../services/authService';
 import {
@@ -109,6 +110,17 @@ export const createPost = [
     };
 
     const newPost = await createOnePost(data);
+    await CacheQueue.add(
+      'invalidate-post-cache',
+      {
+        pattern: 'posts:*',
+      },
+      {
+        jobId: `Invalidate-${Date.now()}`,
+        priority: 1,
+      }
+    );
+
     res
       .status(201)
       .json({ message: 'Created a new post successfully', postId: newPost.id });
@@ -205,6 +217,17 @@ export const updatePost = [
     }
 
     const updatedPost = await updateOnePost(isPostExisted.id, data);
+    await CacheQueue.add(
+      'invalidate-post-cache',
+      {
+        pattern: 'posts:*',
+      },
+      {
+        jobId: `Invalidate-${Date.now()}`,
+        priority: 1,
+      }
+    );
+
     res.json({ message: 'Updated post successfully', postId: updatedPost.id });
   },
 ];
@@ -234,6 +257,17 @@ export const deletePost = [
     await removePostFiles(post!.image, optimizedFile);
 
     const deletedPost = await deleteOnePost(postId);
+    await CacheQueue.add(
+      'invalidate-post-cache',
+      {
+        pattern: 'posts:*',
+      },
+      {
+        jobId: `Invalidate-${Date.now()}`,
+        priority: 1,
+      }
+    );
+
     res.json({ message: 'Post deleted successfully', postId: deletedPost.id });
   },
 ];

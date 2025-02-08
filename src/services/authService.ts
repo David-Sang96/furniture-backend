@@ -1,4 +1,4 @@
-import { prisma } from '../utils/prisma';
+import { prisma } from '../config/prisma';
 
 export const getUserByPhoneNumber = (phone: string) => {
   return prisma.user.findUnique({ where: { phone } });

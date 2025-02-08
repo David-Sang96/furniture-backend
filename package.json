@@ -5,7 +5,8 @@
   "scripts": {
     "test": "jest",
     "dev": "nodemon src/index.ts",
-    "work": "nodemon src/jobs/workers/imageWorker.ts",
+    "optimize": "nodemon src/jobs/workers/imageWorker.ts",
+    "cache": "nodemon src/jobs/workers/cacheWorker.ts",
     "build": "tsc -p .",
     "start": "node"
   },
