@@ -24,7 +24,7 @@ const fileFilter = function (
   file: Express.Multer.File,
   cb: FileFilterCallback
 ) {
-  const fileTypes = ['image/jpeg', 'image/png'];
+  const fileTypes = ['image/jpeg', 'image/png', 'image/webp'];
   if (fileTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {

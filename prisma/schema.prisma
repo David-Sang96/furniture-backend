@@ -79,7 +79,7 @@ model Image {
   id        Int     @id @default(autoincrement())
   path      String  @db.VarChar(255)
   productId Int
-  product   Product @relation(references: [id], fields: [productId])
+  product   Product @relation(references: [id], fields: [productId],onDelete: Cascade)
 }
 
 model Category {

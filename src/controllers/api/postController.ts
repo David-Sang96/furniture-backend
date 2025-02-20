@@ -7,12 +7,11 @@ import {
 } from '../../services/postservice';
 import { checkUserNotExist } from '../../utils/auth';
 import { getOrSetCache } from '../../utils/cache';
+import { checkModelExisted } from '../../utils/check';
 import { handleValidationResult } from '../../utils/errorHandler';
 
 export const getSinglePost = [
-  param('id', 'Post ID is required')
-    .isInt({ gt: 0 })
-    .withMessage('Post ID must be a positive number'),
+  param('id', 'Post Id is required').isInt({ gt: 0 }),
   async (req: Request, res: Response, next: NextFunction) => {
     handleValidationResult(req);
     const postId = req.params.id;
@@ -28,6 +27,7 @@ export const getSinglePost = [
     const post = await getOrSetCache(cacheKey, async () => {
       return await getSinglePostWithRelations(+postId);
     });
+    checkModelExisted(post);
 
     // const modifiedPostData = {
     //   id: post?.id,

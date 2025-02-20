@@ -64,9 +64,11 @@ export const updateOnePost = (id: number, postData: PostDataTypes) => {
   if (postData.tags && postData.tags.length > 0) {
     // many to many relation
     data.tags = {
-      connectOrCreate: postData.tags.map((tagName) => ({
-        where: { name: tagName },
-        create: { name: tagName },
+      // disconnect: [{id:1},{id:2}], Remove selected ids
+      set: [], // Remove all existing tag relationships for this post
+      connectOrCreate: postData.tags.map((tagName: string) => ({
+        where: { name: tagName.trim() },
+        create: { name: tagName.trim() },
       })),
     };
   }

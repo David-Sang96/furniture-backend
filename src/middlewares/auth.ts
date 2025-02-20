@@ -20,6 +20,7 @@ declare global {
     interface Request {
       userId?: number;
       user?: User;
+      files?: any;
     }
   }
 }

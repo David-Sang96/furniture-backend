@@ -6,6 +6,10 @@ import {
   getSinglePost,
 } from '../../../controllers/api/postController';
 import {
+  getProductsByPagination,
+  getSingleProduct,
+} from '../../../controllers/api/productController';
+import {
   changeLanguages,
   uploadMultipleProfile,
   uploadOptimizeProfile,
@@ -39,5 +43,9 @@ router.get('/posts', isAuth, getPostsByPagination);
 // cursor-based pagination
 router.get('/posts/infinite', isAuth, getInfinitePostsByPagination);
 router.get('/posts/:id', isAuth, getSinglePost);
+
+router.get('/products/:id', isAuth, getSingleProduct);
+// cursor-based pagination
+router.get('/products', isAuth, getProductsByPagination);
 
 export default router;

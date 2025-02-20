@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import bcrypt from 'bcrypt';
-import { prisma } from '../src/utils/prisma';
+import { prisma } from '../src/config/prisma';
 
 function createRandomUser() {
   return {

@@ -6,7 +6,6 @@ import sanitize from 'sanitize-html';
 import { errorCode } from '../../config/errorCode';
 import CacheQueue from '../../jobs/queues/cacheQueue';
 import ImageQueue from '../../jobs/queues/imageQueue';
-import { getUserById } from '../../services/authService';
 import {
   createOnePost,
   deleteOnePost,
@@ -14,7 +13,6 @@ import {
   updateOnePost,
 } from '../../services/postservice';
 import { PostDataTypes } from '../../types/postTypes';
-import { checkUserNotExist } from '../../utils/auth';
 import { checkModelExisted, isValidImage } from '../../utils/check';
 import {
   handleError,
@@ -69,21 +67,8 @@ export const createPost = [
     await handlePostValidationResult(req);
 
     const { title, content, body, category, type, tags } = req.body;
-    const userId = req.userId;
     const image = req.file;
     isValidImage(image);
-
-    const user = await getUserById(userId!);
-    if (!user) {
-      await removePostFiles(image!.filename, null);
-      return next(
-        handleError(
-          `This account has not registered`,
-          401,
-          errorCode.unauthenticated
-        )
-      );
-    }
 
     const splitFileName = image!.filename.split('.')[0];
     await ImageQueue.add(
@@ -105,7 +90,7 @@ export const createPost = [
       category,
       type,
       tags,
-      userId: user.id,
+      userId: req.user?.id!,
       image: image!.filename,
     };
 
@@ -128,11 +113,7 @@ export const createPost = [
 ];
 
 export const updatePost = [
-  body('postId', 'Post id is required.')
-    .trim()
-    .notEmpty()
-    .isInt({ min: 1 })
-    .withMessage('Post ID must be a positive number'),
+  body('postId', 'Post id is required.').isInt({ min: 1 }),
   body('title', 'Title is required').notEmpty().trim().escape(),
   body('content', 'Content is required').notEmpty().trim().escape(),
   body('body', 'Content is required')
@@ -153,29 +134,15 @@ export const updatePost = [
     await handlePostValidationResult(req);
 
     const { postId, title, content, body, category, type, tags } = req.body;
-    const userId = req.userId;
+    const user = req.user!;
     const image = req.file;
-
-    const user = await getUserById(userId!);
-    if (!user) {
-      if (image) {
-        await removePostFiles(image!.filename, null);
-      }
-      return next(
-        handleError(
-          `This account has not registered`,
-          401,
-          errorCode.unauthenticated
-        )
-      );
-    }
 
     const isPostExisted = await getPostById(+postId);
     if (!isPostExisted) {
       if (image) {
         await removePostFiles(image!.filename, null);
       }
-      return next(handleError('No post found', 400));
+      return next(handleError('This model does not exist.', 409));
     }
 
     if (user.id !== isPostExisted.userId) {
@@ -233,22 +200,14 @@ export const updatePost = [
 ];
 
 export const deletePost = [
-  body('postId', 'Post ID is required')
-    .isInt({ gt: 0 })
-    .withMessage('Post ID must be a positive number'),
+  body('postId', 'Post ID is required').isInt({ gt: 0 }),
   async (req: Request, res: Response, next: NextFunction) => {
     handleValidationResult(req);
-
     const postId = Number(req.body.postId);
-    const userId = req.userId;
-
-    const user = await getUserById(userId!);
-    checkUserNotExist(user, false);
-
     const post = await getPostById(postId);
     checkModelExisted(post);
 
-    if (user!.id !== post?.userId)
+    if (req.user!.id !== post?.userId)
       return next(
         handleError('This action is not allowed', 403, errorCode.unauthorize)
       );

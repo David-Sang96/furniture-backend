@@ -19,7 +19,7 @@ const imageWorker = new Worker(
       .webp({ quality })
       .toFile(optimizedImagePath);
   },
-  { connection: redisClient }
+  { connection: redisClient, concurrency: 4 }
 );
 
 imageWorker.on('completed', (job) =>

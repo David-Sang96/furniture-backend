@@ -13,7 +13,7 @@ export const postPrisma = new PrismaClient().$extends({
         needs: { image: true },
         compute(user) {
           if (user.image) {
-            return '/optimize' + user.image.split('.')[0] + '.webp';
+            return '/optimize/' + user.image.split('.')[0] + '.webp';
           }
           return user.image;
         },
@@ -23,7 +23,7 @@ export const postPrisma = new PrismaClient().$extends({
       image: {
         needs: { image: true },
         compute(post) {
-          return '/optimize' + post.image.split('.')[0] + '.webp';
+          return '/optimize/' + post.image.split('.')[0] + '.webp';
         },
       },
       updatedAt: {
