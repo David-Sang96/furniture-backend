@@ -3,7 +3,9 @@ import { param, query } from 'express-validator';
 import { getUserById } from '../../services/authService';
 import {
   getAllProducts,
+  getCategories,
   getProductWithRelations,
+  getTypes,
 } from '../../services/productService';
 import { checkUserNotExist } from '../../utils/auth';
 import { getOrSetCache } from '../../utils/cache';
@@ -30,6 +32,7 @@ export const getSingleProduct = [
   },
 ];
 
+// cursor-based pagniation
 export const getProductsByPagination = [
   query('cursor')
     .optional()
@@ -85,6 +88,7 @@ export const getProductsByPagination = [
       select: {
         id: true,
         name: true,
+        description: true,
         price: true,
         discount: true,
         status: true,
@@ -103,14 +107,30 @@ export const getProductsByPagination = [
 
     const hasNextPage = products.length > limit;
     if (hasNextPage) products.pop();
-    const newCursor =
+    const nextCursor =
       products.length > 0 ? products[products.length - 1].id : null;
 
     res.json({
       message: 'Get all products',
       hasNextPage,
-      newCursor,
+      nextCursor,
+      prevCursor: lastCursor,
       products,
     });
   },
 ];
+
+export const getCategoryAndType = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = req.userId;
+  const user = await getUserById(userId!);
+  checkUserNotExist(user);
+
+  const categories = await getCategories();
+  const types = await getTypes();
+
+  res.json({ message: 'Categories And Types', categories, types });
+};

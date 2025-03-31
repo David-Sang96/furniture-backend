@@ -34,13 +34,6 @@ export const handleOtpVerification = async ({
   // Remove '01' prefix if exists
   if (phone.startsWith('01')) phone = phone.slice(2);
 
-  console.log({
-    phoneNumber,
-    otp,
-    token,
-    action,
-  });
-
   const user = await getUserByPhoneNumber(phone);
 
   if (action === 'register') checkUserExist(user);
@@ -58,7 +51,6 @@ export const handleOtpVerification = async ({
 
   // check if token is valid
   if (token !== existingOtp?.rememberToken) {
-    console.log('hello');
     await updateOtp(existingOtp!.id, { error: 5 });
     throw handleError('Invalid token');
   }

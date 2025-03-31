@@ -15,7 +15,7 @@ import routes from './routes/v1';
 
 export const app = express();
 
-const whiteList = ['https://example.com', 'http://localhost:5173'];
+const whiteList = ['https://example.com', 'http://localhost:3000'];
 const corsOptions = {
   origin: function (
     origin: any,
@@ -44,8 +44,6 @@ app
   .use(compression())
   .use(rateLimiter);
 
-app.use(express.static('upload'));
-
 i18next
   .use(i18nextBackend)
   .use(i18nextMiddleware.LanguageDetector)
@@ -70,6 +68,14 @@ i18next
   });
 
 app.use(i18nextMiddleware.handle(i18next));
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
+  next();
+});
+
+app.use(express.static('public'));
+app.use(express.static('upload'));
 
 app.use(routes);
 

@@ -123,7 +123,7 @@ export const getInfinitePostsByPagination = [
     .withMessage('Cursor must be a positive integer.'),
   query('limit')
     .optional()
-    .isInt({ min: 5 })
+    .isInt({ gt: 2 })
     .withMessage('Limit must be at least 5.'),
   async (req: Request, res: Response, next: NextFunction) => {
     handleValidationResult(req);
@@ -149,7 +149,7 @@ export const getInfinitePostsByPagination = [
           },
         },
       },
-      orderBy: { id: 'asc' },
+      orderBy: { id: 'desc' },
     };
     // const posts = await getAllPosts(options);
     const cacheKey = `posts:${JSON.stringify(req.query)}`;
@@ -162,12 +162,13 @@ export const getInfinitePostsByPagination = [
       posts.pop();
     }
 
-    const newCursor = posts.length > 0 ? posts[posts.length - 1].id : null;
+    const nextCursor = posts.length > 0 ? posts[posts.length - 1].id : null;
 
     res.json({
       message: 'Get all inifnite posts',
       hasNextPage,
-      newCursor,
+      nextCursor,
+      prevCursor: lastCursor,
       posts,
     });
   },

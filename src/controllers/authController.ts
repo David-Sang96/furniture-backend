@@ -106,16 +106,18 @@ export const confirmUserRegistration = [
         httpOnly: true,
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         secure: process.env.NODE_ENV === 'production',
+        path: '/',
       })
       .cookie('refreshToken', result?.refreshToken, {
         maxAge: 30 * 24 * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         secure: process.env.NODE_ENV === 'production',
+        path: '/',
       })
       .status(201)
       .json({
-        message: 'Account created successfully',
+        success_message: 'Account created successfully',
         userId: result?.user.id,
       });
   },
@@ -180,12 +182,14 @@ export const login = [
         httpOnly: true,
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         secure: process.env.NODE_ENV === 'production',
+        path: '/',
       })
       .cookie('refreshToken', refreshToken, {
         maxAge: 30 * 24 * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         secure: process.env.NODE_ENV === 'production',
+        path: '/',
       })
       .json({ message: 'Logged in successfully', userId: user!.id });
   },
@@ -255,12 +259,14 @@ export const logOut = async (
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
     secure: process.env.NODE_ENV === 'production',
+    path: '/',
   });
 
   res.clearCookie('refreshToken', {
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
     secure: process.env.NODE_ENV === 'production',
+    path: '/',
   });
   res.json({ message: 'Logged out successfully.See you soon.' });
 };
@@ -349,12 +355,14 @@ export const resetPassword = [
         httpOnly: true,
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         secure: process.env.NODE_ENV === 'production',
+        path: '/',
       })
       .cookie('refreshToken', result?.refreshToken, {
         maxAge: 30 * 24 * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
         secure: process.env.NODE_ENV === 'production',
+        path: '/',
       })
       .status(201)
       .json({
@@ -363,3 +371,20 @@ export const resetPassword = [
       });
   },
 ];
+
+export const authCheck = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const userId = req.userId;
+  const user = await getUserById(userId!);
+  checkUserNotExist(user);
+
+  res.json({
+    message: 'Authenticated user',
+    userId: user?.id,
+    username: `${user?.firstName} ${user?.lastName}`,
+    image: user?.image,
+  });
+};

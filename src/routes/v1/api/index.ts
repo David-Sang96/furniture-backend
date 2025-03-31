@@ -6,6 +6,7 @@ import {
   getSinglePost,
 } from '../../../controllers/api/postController';
 import {
+  getCategoryAndType,
   getProductsByPagination,
   getSingleProduct,
 } from '../../../controllers/api/productController';
@@ -44,6 +45,7 @@ router.get('/posts', isAuth, getPostsByPagination);
 router.get('/posts/infinite', isAuth, getInfinitePostsByPagination);
 router.get('/posts/:id', isAuth, getSinglePost);
 
+router.get('/products/filter-type', isAuth, getCategoryAndType);
 router.get('/products/:id', isAuth, getSingleProduct);
 // cursor-based pagination
 router.get('/products', isAuth, getProductsByPagination);

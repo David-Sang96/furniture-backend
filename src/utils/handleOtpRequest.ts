@@ -10,7 +10,7 @@ import {
 } from '../services/authService';
 import { checkOtpLimitError, checkUserExist, checkUserNotExist } from './auth';
 import { handleError } from './errorHandler';
-import { generateToken } from './generate';
+import { generateOTP, generateToken } from './generate';
 
 type Props = {
   phoneNumber: string;
@@ -34,8 +34,8 @@ export const handleOtpRequest = async ({
   if (action === 'forget-password') checkUserNotExist(user);
 
   // OTP generate & call OTP sending API
-  // const otp = generateOTP();
-  const otp = 123456; // for testing
+  const otp = generateOTP();
+  // const otp = 123456;  for testing
   const salt = await bcrypt.genSalt(10);
   const hashOtp = await bcrypt.hash(otp.toString(), salt);
   const token = generateToken();

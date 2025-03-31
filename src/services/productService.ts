@@ -107,3 +107,11 @@ export const getProductWithRelations = (id: number) => {
 export const getAllProducts = (options: any) => {
   return productPrisma.product.findMany(options);
 };
+
+export const getCategories = () => {
+  return productPrisma.category.findMany();
+};
+
+export const getTypes = () => {
+  return productPrisma.type.findMany();
+};
