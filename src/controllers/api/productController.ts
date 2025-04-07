@@ -40,7 +40,7 @@ export const getProductsByPagination = [
     .withMessage('Cursor must be a positive integer.'),
   query('limit')
     .optional()
-    .isInt({ min: 5 })
+    .isInt({ min: 2 })
     .withMessage('Limit must be at least 5.'),
   async (req: Request, res: Response, next: NextFunction) => {
     handleValidationResult(req);
@@ -61,7 +61,7 @@ export const getProductsByPagination = [
       categories = category
         .toString()
         .split(',')
-        .map((c) => Number(c))
+        .map(Number)
         .filter((c) => c > 0);
     }
 
@@ -69,7 +69,7 @@ export const getProductsByPagination = [
       types = type
         .toString()
         .split(',')
-        .map((t) => Number(t))
+        .map(Number)
         .filter((t) => t > 0);
     }
 

@@ -202,9 +202,9 @@ export const updateProduct = [
       );
 
       const optFileNames = product.images.map(
-        (image) => image.path.split('.')[0] + '.webp'
+        (image: any) => image.path.split('.')[0] + '.webp'
       );
-      const orgFileNames = product.images.map((image) => image.path);
+      const orgFileNames = product.images.map((image: any) => image.path);
       await removeProductFiles(orgFileNames, optFileNames);
     }
 
@@ -231,9 +231,9 @@ export const deleteProduct = [
     const deletedProduct = await deleteOneProduct(product!.id);
 
     const optFileNames = product!.images.map(
-      (image) => image.path.split('.')[0] + '.webp'
+      (image: any) => image.path.split('.')[0] + '.webp'
     );
-    const orgFileNames = product!.images.map((image) => image.path);
+    const orgFileNames = product!.images.map((image: any) => image.path);
     await removeProductFiles(orgFileNames, optFileNames);
 
     await CacheQueue.add(

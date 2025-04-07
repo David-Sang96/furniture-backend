@@ -5,13 +5,13 @@ export const postPrisma = new PrismaClient().$extends({
     user: {
       fullName: {
         needs: { firstName: true, lastName: true },
-        compute(user) {
+        compute(user: { firstName: any; lastName: any }) {
           return `${user.firstName} ${user.lastName}`;
         },
       },
       image: {
         needs: { image: true },
-        compute(user) {
+        compute(user: { image: string }) {
           if (user.image) {
             return '/optimize/' + user.image.split('.')[0] + '.webp';
           }
@@ -19,16 +19,24 @@ export const postPrisma = new PrismaClient().$extends({
         },
       },
     },
+
     post: {
       image: {
         needs: { image: true },
-        compute(post) {
+        compute(post: { image: string }) {
           return '/optimize/' + post.image.split('.')[0] + '.webp';
         },
       },
       updatedAt: {
         needs: { updatedAt: true },
-        compute(post) {
+        compute(post: {
+          updatedAt: {
+            toLocaleDateString: (
+              arg0: string,
+              arg1: { year: string; month: string; day: string }
+            ) => any;
+          };
+        }) {
           return post.updatedAt.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',

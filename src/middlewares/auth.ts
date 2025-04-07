@@ -117,7 +117,9 @@ export const isAuth = async (
       { expiresIn: '30d' }
     );
 
-    await updateUser(user!.id, { refreshToken: newRefreshToken });
+    await updateUser(user!.id, {
+      refreshToken: newRefreshToken,
+    });
 
     res
       .cookie('accessToken', newAccessToken, {
@@ -163,8 +165,10 @@ export const isAuth = async (
     next();
   } catch (error: any) {
     console.log(error);
-    if (error.name === 'TokenExpiredError') await generateNewTokens();
-    else
+    if (error.name === 'TokenExpiredError') {
+      await generateNewTokens();
+      return next(); // Make sure it continues execution after refreshing the token
+    } else
       return next(
         handleError('Access token is invalid', 400, errorCode.attack)
       );

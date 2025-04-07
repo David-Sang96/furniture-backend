@@ -5,7 +5,7 @@ export const productPrisma = new PrismaClient().$extends({
     image: {
       path: {
         needs: { path: true },
-        compute(image) {
+        compute(image: { path: string }) {
           return `/optimize/${image.path.split('.')[0]}.webp`;
         },
       },
