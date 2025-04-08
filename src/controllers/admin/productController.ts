@@ -21,7 +21,8 @@ export const createProduct = [
   body('description', 'Description is required').trim().notEmpty().escape(),
   body('price', 'Price is required')
     .isFloat({ min: 0.1 })
-    .isDecimal({ decimal_digits: '1,2' }), // allowe only 2 places after dot (.00)
+    .isDecimal({ decimal_digits: '1,2' })
+    .withMessage('decimal allow only 2 places.'), // allowe only 2 places after dot (.00)
   body('rating', 'Rating is invalid').optional().isInt({ min: 1 }),
   body('discount', 'Discount is required')
     .isFloat({ min: 0 })

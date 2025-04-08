@@ -10,7 +10,6 @@ import morgan from 'morgan';
 // import cron from 'node-cron';
 import path from 'path';
 
-import { rateLimiter } from './middlewares/rateLimiter';
 import routes from './routes/v1';
 
 export const app = express();
@@ -41,8 +40,8 @@ app
   .use(cookieParser())
   .use(cors(corsOptions))
   .use(helmet())
-  .use(compression())
-  .use(rateLimiter);
+  .use(compression());
+// .use(rateLimiter);
 
 i18next
   .use(i18nextBackend)

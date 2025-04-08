@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { param, query } from 'express-validator';
+import { body, param, query } from 'express-validator';
+import CacheQueue from '../../jobs/queues/cacheQueue';
 import { getUserById } from '../../services/authService';
 import {
   getAllProducts,
@@ -7,6 +8,7 @@ import {
   getProductWithRelations,
   getTypes,
 } from '../../services/productService';
+import { addFavorite, removeFavorite } from '../../services/userService';
 import { checkUserNotExist } from '../../utils/auth';
 import { getOrSetCache } from '../../utils/cache';
 import { checkModelExisted } from '../../utils/check';
@@ -24,7 +26,7 @@ export const getSingleProduct = [
 
     const cacheKey = `products:${JSON.stringify(productId)}`;
     const product = await getOrSetCache(cacheKey, async () => {
-      return await getProductWithRelations(+productId);
+      return await getProductWithRelations(+productId, user!.id);
     });
     checkModelExisted(product);
 
@@ -134,3 +136,43 @@ export const getCategoryAndType = async (
 
   res.json({ message: 'Categories And Types', categories, types });
 };
+
+export const toggleFavorite = [
+  body('productId')
+    .trim()
+    .notEmpty()
+    .withMessage('Product ID is required')
+    .isInt()
+    .withMessage('Product ID must be a number'),
+  body('favorite')
+    .notEmpty()
+    .withMessage('Favorite is required')
+    .isBoolean()
+    .withMessage('Favorite must be boolean'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    handleValidationResult(req);
+
+    const userId = req.userId;
+    const user = await getUserById(userId!);
+    checkUserNotExist(user);
+
+    const { productId, favorite } = req.body;
+    if (favorite) {
+      await addFavorite(user!.id, +productId);
+    } else {
+      await removeFavorite(user!.id, +productId);
+    }
+
+    await CacheQueue.add(
+      'invalidate-product-cache',
+      {
+        pattern: 'products:*',
+      },
+      { priority: 1, jobId: `Invalidate-${Date.now()}` }
+    );
+
+    res.json({
+      message: favorite ? 'Added to favorite' : 'Removed from favorite',
+    });
+  },
+];

@@ -20,10 +20,11 @@ model User {
   errorLoginCount Int       @default(0) @db.SmallInt
   refreshToken    String
   image           String?
-  posts           Post[]
-  orders          Order[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  posts           Post[]
+  orders          Order[]
+  products        Product[]
 }
 
 model Otp {
@@ -47,12 +48,12 @@ model Post {
   userId     Int
   categoryId Int
   typeId     Int
-  tags       PostTag[]
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   user       User      @relation(references: [id], fields: [userId])
   category   Category  @relation(references: [id], fields: [categoryId])
   type       Type      @relation(fields: [typeId], references: [id])
+  tags       PostTag[]
 }
 
 model Product {
@@ -66,13 +67,14 @@ model Product {
   status      Status             @default(ACTIVE)
   categoryId  Int
   typeId      Int
-  images      Image[]
-  orders      ProductsOnOrders[]
-  tags        ProductTag[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   category    Category           @relation(references: [id], fields: [categoryId])
   type        Type               @relation(references: [id], fields: [typeId])
+  images      Image[]
+  orders      ProductsOnOrders[]
+  tags        ProductTag[]
+  users       User[]
 }
 
 model Image {
@@ -127,10 +129,10 @@ model Order {
   code       String             @db.VarChar(15)
   totalPrice Decimal            @db.Decimal(10, 2)
   userId     Int
-  products   ProductsOnOrders[]
   createdAt  DateTime           @default(now())
   updatedAt  DateTime           @updatedAt
   user       User               @relation(fields: [userId], references: [id])
+  products   ProductsOnOrders[]
 }
 
 model ProductsOnOrders {

@@ -9,6 +9,7 @@ import {
   getCategoryAndType,
   getProductsByPagination,
   getSingleProduct,
+  toggleFavorite,
 } from '../../../controllers/api/productController';
 import {
   changeLanguages,
@@ -49,5 +50,7 @@ router.get('/products/filter-type', isAuth, getCategoryAndType);
 router.get('/products/:id', isAuth, getSingleProduct);
 // cursor-based pagination
 router.get('/products', isAuth, getProductsByPagination);
+
+router.patch('/products/toggle-favorite', isAuth, toggleFavorite);
 
 export default router;

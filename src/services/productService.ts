@@ -92,13 +92,17 @@ export const getProductById = (id: number) => {
   });
 };
 
-export const getProductWithRelations = (id: number) => {
+export const getProductWithRelations = (id: number, userId: number) => {
   return productPrisma.product.findUnique({
     where: { id },
     omit: { categoryId: true, typeId: true, createdAt: true, updatedAt: true },
     include: {
       images: {
         select: { id: true, path: true },
+      },
+      users: {
+        where: { id: userId },
+        select: { id: true },
       },
     },
   });
