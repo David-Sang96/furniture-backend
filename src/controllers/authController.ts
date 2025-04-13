@@ -16,6 +16,7 @@ import { generateJwtTokens, generateToken } from '../utils/generate';
 import { handleOtpRequest } from '../utils/handleOtpRequest';
 import { handleOtpVerification } from '../utils/handleOtpVerification';
 import { handlePasswordConfirmation } from '../utils/handlePasswordConfirmation';
+import { handleUpatePassword } from '../utils/handleUpdatePassword';
 
 interface CustomJWtPayload extends JwtPayload {
   userId: number;
@@ -191,7 +192,16 @@ export const login = [
         secure: process.env.NODE_ENV === 'production',
         path: '/',
       })
-      .json({ message: 'Logged in successfully', userId: user!.id });
+      .json({
+        message: 'Logged in successfully',
+        userId: user!.id,
+        userInfo: {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phone: user.phone,
+          email: user.email,
+        },
+      });
   },
 ];
 
@@ -364,10 +374,58 @@ export const resetPassword = [
         secure: process.env.NODE_ENV === 'production',
         path: '/',
       })
-      .status(201)
       .json({
         message: 'Password reset successfully',
         userId: result?.user.id,
+      });
+  },
+];
+
+export const updatePassword = [
+  body('oldPassword', 'Old password must be at least 8 characters')
+    .trim()
+    .notEmpty()
+    .matches(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+$/)
+    .withMessage('Old password must contain at least one letters and one digit')
+    .isLength({ min: 8 }),
+  body('newPassword', 'Password must be at least 8 characters')
+    .trim()
+    .notEmpty()
+    .matches(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+$/)
+    .withMessage('Password must contain at least one letters and one digit')
+    .isLength({ min: 8 }),
+
+  async (req: Request, res: Response, next: NextFunction) => {
+    handleValidationResult(req);
+
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.userId;
+    const user = await getUserById(Number(userId));
+    checkUserNotExist(user);
+
+    const result = await handleUpatePassword({
+      phoneNumber: user!.phone,
+      oldPassword,
+      newPassword,
+    });
+
+    res
+      .cookie('accessToken', result?.accessToken, {
+        maxAge: 15 * 60 * 1000,
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+      })
+      .cookie('refreshToken', result?.refreshToken, {
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+      })
+      .json({
+        message: 'Password updated successfully',
       });
   },
 ];

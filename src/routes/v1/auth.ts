@@ -8,6 +8,7 @@ import {
   logOut,
   register,
   resetPassword,
+  updatePassword,
   verifyOtp,
   verifyOtpPassword,
 } from '../../controllers/authController';
@@ -24,6 +25,7 @@ router.post('/logout', logOut);
 router.post('/forget-password', forgetPassword);
 router.post('/verify', verifyOtpPassword);
 router.post('/reset-password', resetPassword);
+router.post('/update-password', isAuth, updatePassword);
 
 router.get('/auth-check', isAuth, authCheck);
 
